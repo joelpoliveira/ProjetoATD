@@ -351,7 +351,7 @@ def get_frequencies_from_activities(activity_array, percent, window, user=0, exp
 ////
 """        
 
-def get_dft(user_frag_act, N, zeros, percent, plotit, wind_flag):
+def get_dft(user_frag_act, N, zeros, percent, plotit, wind_flag, ignore = False):
     fs = 50
     if N%2==0:
         f = np.linspace( -fs/2, fs/2 - fs/2/N, N) 
@@ -373,6 +373,10 @@ def get_dft(user_frag_act, N, zeros, percent, plotit, wind_flag):
     dfts['Y'] = np.abs( fftshift( fft( user_frag_act['Y'] * window ) ) )
     dfts['Z'] = np.abs( fftshift( fft( user_frag_act['Z'] * window ) ) )
     
+    if ignore:
+        dfts['X'][f==0]=0
+        dfts['Y'][f==0]=0
+        dfts['Z'][f==0]=0
     print(entropy(dfts['X']), entropy(dfts['Y']), entropy(dfts['Z']), sep = '\t'*7)
     
     figure, subplots = plt.subplots(nrows = 1, ncols= 3, figsize = (20,5), facecolor = 'black' if dark_background else 'white')
