@@ -107,3 +107,16 @@ lie_stand_user3_1_detrended
 lie_stand_user3_2_detrended
 lie_stand_user4_1_detrended
 lie_stand_user4_2_detrended
+
+print(walk_user_freq)
+print(walk_down_user_freq)
+print(walk_up_user_freq)
+print(stand_user_freq)
+print(sit_user_freq)
+print(lay_user_freq)
+print(stand_sit_user_freq)
+print(sit_stand_user_freq)
+print(stand_lie_user_freq)
+print(lie_stand_user_freq)
+print(lie_sit_user_freq)
+print(sit_lie_user_freq)
