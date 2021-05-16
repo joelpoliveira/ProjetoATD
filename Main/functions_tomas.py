@@ -255,7 +255,7 @@ def get_frequencies_from_activities(activity_array, percent, window):
     
     aux = {'X':x_total, 'Y':y_total, 'Z':z_total}
     Hz_pd = pd.DataFrame.from_dict(aux, orient='index').transpose()
-    Hz_pd = Hz_pd[::][Hz_pd[::]<3]
+    Hz_pd = Hz_pd[::][Hz_pd[::]<2.5]
     Hz_pd = Hz_pd[::][Hz_pd[::]>0]
     return Hz_pd
 
@@ -278,7 +278,6 @@ def stft(user, janela, percent, flag_max_freq):
     
     N = len(user['Z'])
     
-
     for i in range(0, N-miniNs + 1, miniNs - overlap):
         Cms = np.array([])
         seccao = signal.detrend(user['Z'][i:i+miniNs])
