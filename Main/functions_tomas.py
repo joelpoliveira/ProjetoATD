@@ -111,23 +111,25 @@ def plot_user_activity(user_walks, title):
 
 
 def set_between_std(user):
-    xmean = user['X'].mean()
-    xstd = user['X'].std()
-    user['X'] = user['X'].map(lambda x: (xmean + 2.5*xstd) if (x > xmean + 3*xstd) 
+    new = user.copy()
+    xmean = new['X'].mean()
+    xstd = new['X'].std()
+    new['X'] = new['X'].map(lambda x: (xmean + 2.5*xstd) if (x > xmean + 3*xstd) 
                               else ( (xmean - 2.5*xstd) if (x < xmean - 3*xstd) 
                                     else x ) )
     
-    ymean = user['Y'].mean()
-    ystd = user['Y'].std()
-    user['Y'] = user['Y'].map(lambda x: (ymean + 2.5*ystd) if (x > ymean + 3*ystd) 
+    ymean = new['Y'].mean()
+    ystd = new['Y'].std()
+    new['Y'] = new['Y'].map(lambda x: (ymean + 2.5*ystd) if (x > ymean + 3*ystd) 
                               else ( (ymean - 2.5*ystd) if (x < ymean - 3*ystd) 
                                     else x ) )
     
-    zmean = user['Z'].mean()
-    zstd = user['Z'].std()
-    user['Z'] = user['Z'].map(lambda x: (zmean + 2.5*zstd) if (x > zmean + 3*zstd) 
+    zmean = new['Z'].mean()
+    zstd = new['Z'].std()
+    new['Z'] = new['Z'].map(lambda x: (zmean + 2.5*zstd) if (x > zmean + 3*zstd) 
                               else ( (zmean - 2.5*zstd) if (x < zmean - 3*zstd) 
                                     else x ) )
+    return new
 
 
 def detrend_user_walk(user):
@@ -188,6 +190,8 @@ def plot_activity_dft(user_frag_act, N, user, exp, title, zeros, percent, wind_t
     if not plotit:
         for i in range(3):
             dfts[i][ dfts[i]<np.max(dfts[i])*percent ] = 0
+            
+    
     #Calcular o Cm para determinar se a atividade é estática pu dinâmica
     #atividade dinâmica -> valores > 0.01
     #amplitude     
@@ -211,7 +215,8 @@ def plot_activity_dft(user_frag_act, N, user, exp, title, zeros, percent, wind_t
     #print(aux)
     Cms = pd.DataFrame.from_dict(aux, orient='index').transpose()
     #print(Cms)
-    #print(Cms.describe())
+    print(Cms.describe())
+    
     """
     if zeros:
         #print(f'user{user}_{exp}')
@@ -255,4 +260,59 @@ def get_frequencies_from_activities(activity_array, percent, window):
     return Hz_pd
 
 
+def stft(user, janela, percent, flag_max_freq):
+    miniNs = janela
+    overlap = miniNs//2
 
+    fs = 50
+    if miniNs%2==0:
+        f = np.linspace( -fs/2, fs/2 - fs/2/miniNs, miniNs) 
+    else:
+        f = np.linspace( -fs/2 + fs/2/miniNs, fs/2 - fs/2/miniNs, miniNs)
+    
+    
+    freqs = [np.array([])] * flag_max_freq
+    window = np.hanning(miniNs)
+    times = np.array([])
+    cms_max = np.array([])
+    
+    N = len(user['Z'])
+    
+
+    for i in range(0, N-miniNs + 1, miniNs - overlap):
+        Cms = np.array([])
+        seccao = signal.detrend(user['Z'][i:i+miniNs])
+        dft = np.abs(fftshift(fft(seccao)))
+        
+        for j in range(len(dft[f>=0])):
+            if f[f>=0][j]==0:
+                Cms = np.append(Cms, [dft[f>=0][j]/miniNs])
+            else:
+                Cms = np.append(Cms, [dft[f>=0][j]*2/miniNs])
+
+        cms_max = np.append( cms_max, [max(Cms)])
+        #c_max = max(dft)*(2 if np.any(f[dft==max(dft)]!=0) else 1)/miniNs
+        #print(c_max)
+
+        dft = np.abs(fftshift(fft(seccao*window)))
+        dft[dft<np.max(dft)*percent] = 0
+        
+        
+        
+        for j in range(len(np.unique(np.round(np.abs(f[ dft>0 ]), 8)))):
+            if j == flag_max_freq:
+                break
+            if np.unique(np.round(np.abs(f[ dft>0 ]), 8))[j] > 2.5:
+                continue
+            else:
+                freqs[j] = np.append( freqs[j], np.unique(np.round(np.abs(f[ dft>0 ]), 8))[j] )
+        
+        max_len = max(map(lambda x: len(x), freqs))
+        for j in range(len(freqs)):
+            while len(freqs[j]) < max_len:
+                freqs[j] = np.append(freqs[j], [-1])
+             
+        
+        times = np.append(times, user['Time (min)'][(2*i+miniNs)//2])
+
+    return times, freqs, cms_max

@@ -203,7 +203,7 @@ def detrend_user_walk(user):
 ////
 """    
 
-
+"""
 def plot_activity_dft(user_frag_act, N, user, exp, title, zeros, percent, wind_title, plotit):
     fs = 50
     if N%2==0:
@@ -305,6 +305,7 @@ def plot_activity_dft(user_frag_act, N, user, exp, title, zeros, percent, wind_t
         print('------------------')
     
     return np.unique(np.round(np.abs(f[np.where(dfts[0])]), 8)), np.unique(np.round(np.abs(f[np.where(dfts[1])]), 8)), np.unique(np.round(np.abs(f[np.where(dfts[2])]), 8))
+"""
 
 """
 \\\\
@@ -312,7 +313,7 @@ def plot_activity_dft(user_frag_act, N, user, exp, title, zeros, percent, wind_t
 ////
 """    
 
-
+"""
 def get_frequencies_from_activities(activity_array, percent, window, user=0, exp=0):
     x_total = []
     y_total = []
@@ -343,7 +344,7 @@ def get_frequencies_from_activities(activity_array, percent, window, user=0, exp
     Hz_pd = Hz_pd[::][Hz_pd[::]<2.5]
     #print("\n", Hz_pd)
     print(Hz_pd.describe())
-
+"""
     
 """
 \\\\
@@ -377,7 +378,7 @@ def get_dft(user_frag_act, N, zeros, percent, plotit, wind_flag, ignore = False)
         dfts['X'][f==0]=0
         dfts['Y'][f==0]=0
         dfts['Z'][f==0]=0
-    print(entropy(dfts['X']), entropy(dfts['Y']), entropy(dfts['Z']), sep = '\t'*7)
+    #print(entropy(dfts['X']), entropy(dfts['Y']), entropy(dfts['Z']), sep = '\t'*7)
     
     figure, subplots = plt.subplots(nrows = 1, ncols= 3, figsize = (20,5), facecolor = 'black' if dark_background else 'white')
         
@@ -431,43 +432,30 @@ def get_dft(user_frag_act, N, zeros, percent, plotit, wind_flag, ignore = False)
 ////
 """    
 
-def get_amps(user_dfts, N):            
-    figure, subplots = plt.subplots(nrows = 1, ncols= 3, figsize = (25,5), facecolor = 'black' if dark_background else 'white')
+def get_amps(dfts, N):  
+    fs = 50
+    if N%2==0:
+        f = np.linspace( -fs/2, fs/2 - fs/N, N) 
+    else:
+        f = np.linspace( -fs/2 + fs/2/N, fs/2 - fs/2/N, N)
         
-    if dark_background:
-        subplots[0].set_facecolor('k')
-        subplots[1].set_facecolor('k')
-        subplots[2].set_facecolor('k')
-    
-    amps = pd.DataFrame()
-    print(N)
-    amps['m'] = np.arange( (N//2) if N%2==0 else (N//2 + 1) )
-    f = lambda x: x if x==0 else 2*x
-    print(len(amps))
-    amps['X'] = np.array(list(map( f, user_dfts['X'][ user_dfts['Frequency (Hz)'] >=0 ] )))/N
-    amps['Y'] = np.array(list(map( f, user_dfts['Y'][ user_dfts['Frequency (Hz)'] >=0 ] )))/N
-    amps['Z'] = np.array(list(map( f, user_dfts['Z'][ user_dfts['Frequency (Hz)'] >=0 ] )))/N
-    
-    j=0
-    for i in ['X','Y','Z']:
-        marker, stem, base = subplots[j].stem( amps['m'], amps[i])
-        stem.set_linewidth(0.8)
-        plt.setp(marker, markersize = 2)
-        j+=1
-    
-    subplots[0].set_xlabel("Axis X Frequency (Hz)", c = 'white'  if dark_background else 'black')
-    subplots[1].set_xlabel("Axis Y Frequency (Hz)", c = 'white'  if dark_background else 'black')
-    subplots[2].set_xlabel("Axis Z Frequency (Hz)", c = 'white'  if dark_background else 'black')
-        
-    subplots[0].set_ylabel("Magnitude", c = 'white'  if dark_background else 'black')
-    subplots[1].set_ylabel("Magnitude", c = 'white'  if dark_background else 'black')
-    subplots[2].set_ylabel("Magnitude", c = 'white'  if dark_background else 'black')
-        
-    subplots[0].tick_params(axis='x', colors='white' if dark_background else 'black')
-    subplots[1].tick_params(axis='x', colors='white' if dark_background else 'black')
-    subplots[2].tick_params(axis='x', colors='white' if dark_background else 'black')
-        
-    subplots[0].tick_params(axis='y', colors='white' if dark_background else 'black')
-    subplots[1].tick_params(axis='y', colors='white' if dark_background else 'black')
-    subplots[2].tick_params(axis='y', colors='white' if dark_background else 'black')
-    return amps
+    aux = {'X':[], 'Y':[], 'Z':[]}
+    eixos = ['X', 'Y', 'Z']
+    for eixo in range(3):
+        freqs = np.unique(np.round(np.abs(f[np.where(dfts[eixos[eixo]])]), 8))
+        magnitude = np.unique(np.round(dfts[eixos[eixo]][dfts[eixos[eixo]]>0], 8))
+        for i in range(len(freqs)):
+            if freqs[i] == 0:
+                Cm = magnitude[i] / N
+            else:
+                Cm = 2*magnitude[i] / N
+            if eixo == 0:
+                aux['X'].append(Cm)
+            if eixo == 1:
+                aux['Y'].append(Cm)
+            else:
+                aux['Z'].append(Cm)
+    #print(aux)
+    Cms = pd.DataFrame.from_dict(aux, orient='index').transpose()
+    return Cms
+

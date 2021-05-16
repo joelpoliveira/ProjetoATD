@@ -596,6 +596,16 @@ walks_user.append(walks_user3_2_detrended)
 walks_user.append(walks_user4_1_detrended)
 walks_user.append(walks_user4_2_detrended)
 
+walks_user_nd = []
+walks_user_nd.append(walks_user1_1)
+walks_user_nd.append(walks_user1_2)
+walks_user_nd.append(walks_user2_1)
+walks_user_nd.append(walks_user2_2)
+walks_user_nd.append(walks_user3_1)
+walks_user_nd.append(walks_user3_2)
+walks_user_nd.append(walks_user4_1)
+walks_user_nd.append(walks_user4_2)
+
 #------Walking down------#
 walks_down_user = []
 walks_down_user.append(walks_down_user1_1_detrended)
@@ -629,6 +639,16 @@ sit_user.append(sit_user3_2_detrended)
 sit_user.append(sit_user4_1_detrended)
 sit_user.append(sit_user4_2_detrended)
 
+sit_user_nd = []
+sit_user_nd.append(sit_user1_1)
+sit_user_nd.append(sit_user1_2)
+sit_user_nd.append(sit_user2_1)
+sit_user_nd.append(sit_user2_2)
+sit_user_nd.append(sit_user3_1)
+sit_user_nd.append(sit_user3_2)
+sit_user_nd.append(sit_user4_1)
+sit_user_nd.append(sit_user4_2)
+
 #------Lay------#
 lay_user = []
 lay_user.append(lay_user1_1_detrended)
@@ -640,6 +660,16 @@ lay_user.append(lay_user3_2_detrended)
 lay_user.append(lay_user4_1_detrended)
 lay_user.append(lay_user4_2_detrended)
 
+lay_user_nd = []
+lay_user_nd.append(lay_user1_1)
+lay_user_nd.append(lay_user1_2)
+lay_user_nd.append(lay_user2_1)
+lay_user_nd.append(lay_user2_2)
+lay_user_nd.append(lay_user3_1)
+lay_user_nd.append(lay_user3_2)
+lay_user_nd.append(lay_user4_1)
+lay_user_nd.append(lay_user4_2)
+
 #------Stand------#
 stand_user = []
 stand_user.append(stand_user1_1_detrended)
@@ -650,6 +680,16 @@ stand_user.append(stand_user3_1_detrended)
 stand_user.append(stand_user3_2_detrended)
 stand_user.append(stand_user4_1_detrended)
 stand_user.append(stand_user4_2_detrended)
+
+stand_user_nd = []
+stand_user_nd.append(stand_user1_1)
+stand_user_nd.append(stand_user1_2)
+stand_user_nd.append(stand_user2_1)
+stand_user_nd.append(stand_user2_2)
+stand_user_nd.append(stand_user3_1)
+stand_user_nd.append(stand_user3_2)
+stand_user_nd.append(stand_user4_1)
+stand_user_nd.append(stand_user4_2)
 
 #------Stand to sit------#
 stand_sit_user = []
@@ -672,6 +712,7 @@ sit_stand_user.append(sit_stand_user3_1_detrended)
 sit_stand_user.append(sit_stand_user3_2_detrended)
 sit_stand_user.append(sit_stand_user4_1_detrended)
 sit_stand_user.append(sit_stand_user4_2_detrended)
+
 
 #------Stand to lie------#
 stand_lie_user = []
