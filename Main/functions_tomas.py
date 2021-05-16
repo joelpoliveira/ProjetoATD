@@ -250,9 +250,57 @@ def get_frequencies_from_activities(activity_array, percent, window):
     
     aux = {'X':x_total, 'Y':y_total, 'Z':z_total}
     Hz_pd = pd.DataFrame.from_dict(aux, orient='index').transpose()
-    Hz_pd = Hz_pd[::][Hz_pd[::]<3]
+    Hz_pd = Hz_pd[::][Hz_pd[::]<2.5]
     Hz_pd = Hz_pd[::][Hz_pd[::]>0]
     return Hz_pd
 
+
+def stft(user, janela, percent):
+    miniNs = janela
+    overlap = miniNs//2
+
+    fs = 50
+    if miniNs%2==0:
+        f = np.linspace( -fs/2, fs/2 - fs/2/miniNs, miniNs) 
+    else:
+        f = np.linspace( -fs/2 + fs/2/miniNs, fs/2 - fs/2/miniNs, miniNs)
+
+    freqs = [np.array([]), np.array([]), np.array([])]
+    window = np.hamming(miniNs)
+    times = np.array([])
+    cms_max = np.array([])
+    
+    N = len(user['Z'])
+    
+    for i in range(0, N-miniNs + 1, miniNs - overlap):
+        Cms = np.array([])
+        seccao = signal.detrend(user['Z'][i:i+miniNs])
+        dft = np.abs(fftshift(fft(seccao)))
+        
+        for j in range(len(dft[f>=0])):
+            if f[f>=0][j]==0:
+                Cms = np.append(Cms, [dft[f>=0][j]/miniNs])
+            else:
+                Cms = np.append(Cms, [dft[f>=0][j]*2/miniNs])
+
+        cms_max = np.append( cms_max, [max(Cms)])
+        #c_max = max(dft)*(2 if np.any(f[dft==max(dft)]!=0) else 1)/miniNs
+        #print(c_max)
+
+        dft = np.abs(fftshift(fft(seccao*window)))
+        dft[dft<np.max(dft)*percent] = 0
+
+        j = -1
+        while j >= -3 and abs(j)-1 < len(np.unique(np.round(np.abs(f[dft>0]), 8))):
+            freqs[abs(j)-1] = np.append( freqs[abs(j)-1], np.unique(np.round(np.abs(f[dft>0]), 8))[j] )
+            j-=1
+        if j>=-3:
+            while j >= -3:
+                freqs[abs(j)-1] = np.append(freqs[abs(j)-1], [0])
+                j-=1
+        
+        times = np.append(times, user['Time (min)'][(2*i+miniNs)//2])
+
+    return times, freqs, cms_max
 
 
