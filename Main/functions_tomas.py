@@ -187,11 +187,11 @@ def plot_activity_dft(user_frag_act, N, user, exp, title, zeros, percent, wind_t
         subplots[2].set_ylabel("Magnitude")
     
         figure.tight_layout()
+
     if not plotit:
         for i in range(3):
             dfts[i][ dfts[i]<np.max(dfts[i])*percent ] = 0
             
-    
     #Calcular o Cm para determinar se a atividade é estática pu dinâmica
     #atividade dinâmica -> valores > 0.01
     #amplitude     
@@ -215,7 +215,7 @@ def plot_activity_dft(user_frag_act, N, user, exp, title, zeros, percent, wind_t
     #print(aux)
     Cms = pd.DataFrame.from_dict(aux, orient='index').transpose()
     #print(Cms)
-    print(Cms.describe())
+    #print(Cms.describe())
     
     """
     if zeros:
@@ -257,10 +257,11 @@ def get_frequencies_from_activities(activity_array, percent, window):
     Hz_pd = pd.DataFrame.from_dict(aux, orient='index').transpose()
     Hz_pd = Hz_pd[::][Hz_pd[::]<2.5]
     Hz_pd = Hz_pd[::][Hz_pd[::]>0]
+
     return Hz_pd
 
 
-def stft(user, janela, percent, flag_max_freq):
+def stft(user, janela, percent, flag_max_freq = 3):
     miniNs = janela
     overlap = miniNs//2
 
@@ -269,7 +270,6 @@ def stft(user, janela, percent, flag_max_freq):
         f = np.linspace( -fs/2, fs/2 - fs/2/miniNs, miniNs) 
     else:
         f = np.linspace( -fs/2 + fs/2/miniNs, fs/2 - fs/2/miniNs, miniNs)
-    
     
     freqs = [np.array([])] * flag_max_freq
     window = np.hanning(miniNs)
@@ -296,8 +296,16 @@ def stft(user, janela, percent, flag_max_freq):
         dft = np.abs(fftshift(fft(seccao*window)))
         dft[dft<np.max(dft)*percent] = 0
         
+        j = -1
+        while j >= -3 and abs(j)-1 < len(np.unique(np.round(np.abs(f[dft>0]), 8))):
+            freqs[abs(j)-1] = np.append( freqs[abs(j)-1], np.unique(np.round(np.abs(f[dft>0]), 8))[j] )
+            j-=1
+        if j>=-3:
+            while j >= -3:
+                freqs[abs(j)-1] = np.append(freqs[abs(j)-1], [0])
+                j-=1
         
-        
+        """
         for j in range(len(np.unique(np.round(np.abs(f[ dft>0 ]), 8)))):
             if j == flag_max_freq:
                 break
@@ -306,12 +314,13 @@ def stft(user, janela, percent, flag_max_freq):
             else:
                 freqs[j] = np.append( freqs[j], np.unique(np.round(np.abs(f[ dft>0 ]), 8))[j] )
         
+
         max_len = max(map(lambda x: len(x), freqs))
         for j in range(len(freqs)):
             while len(freqs[j]) < max_len:
                 freqs[j] = np.append(freqs[j], [-1])
-             
-        
+        """
+
         times = np.append(times, user['Time (min)'][(2*i+miniNs)//2])
 
     return times, freqs, cms_max
