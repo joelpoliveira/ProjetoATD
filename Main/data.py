@@ -24,6 +24,15 @@ user3_2['Time (min)'] = np.arange(0, len(user3_2['X']) * T, T)/60
 user4_1['Time (min)'] = np.arange(0, len(user4_1['X']) * T, T)/60 
 user4_2['Time (min)'] = np.arange(0, len(user4_2['X']) * T, T)/60
 
+users = []
+users.append(user1_1)
+users.append(user1_2)
+users.append(user2_1)
+users.append(user2_2)
+users.append(user3_1)
+users.append(user3_2)
+users.append(user4_1)
+users.append(user4_2)
 
 #---------------------------------------------------------------#
 #------------------Fragment all activities----------------------#

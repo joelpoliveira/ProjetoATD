@@ -114,20 +114,20 @@ def set_between_std(user):
     new = user.copy()
     xmean = new['X'].mean()
     xstd = new['X'].std()
-    new['X'] = new['X'].map(lambda x: (xmean + 2.5*xstd) if (x > xmean + 3*xstd) 
-                              else ( (xmean - 2.5*xstd) if (x < xmean - 3*xstd) 
+    new['X'] = new['X'].map(lambda x: (xmean + 2*xstd) if (x > xmean + 3*xstd) 
+                              else ( (xmean - 2*xstd) if (x < xmean - 3*xstd) 
                                     else x ) )
-    
+
     ymean = new['Y'].mean()
     ystd = new['Y'].std()
-    new['Y'] = new['Y'].map(lambda x: (ymean + 2.5*ystd) if (x > ymean + 3*ystd) 
-                              else ( (ymean - 2.5*ystd) if (x < ymean - 3*ystd) 
+    new['Y'] = new['Y'].map(lambda x: (ymean + 2*ystd) if (x > ymean + 3*ystd) 
+                              else ( (ymean - 2*ystd) if (x < ymean - 3*ystd) 
                                     else x ) )
     
     zmean = new['Z'].mean()
     zstd = new['Z'].std()
-    new['Z'] = new['Z'].map(lambda x: (zmean + 2.5*zstd) if (x > zmean + 3*zstd) 
-                              else ( (zmean - 2.5*zstd) if (x < zmean - 3*zstd) 
+    new['Z'] = new['Z'].map(lambda x: (zmean + 2*zstd) if (x > zmean + 3*zstd) 
+                              else ( (zmean - 2*zstd) if (x < zmean - 3*zstd) 
                                     else x ) )
     return new
 
@@ -217,14 +217,13 @@ def plot_activity_dft(user_frag_act, N, user, exp, title, zeros, percent, wind_t
     #print(Cms)
     #print(Cms.describe())
     
-    """
-    if zeros:
-        #print(f'user{user}_{exp}')
-        #print('X: Hz-', data[0][0], 'Magnitude:' , np.unique(np.round(dfts[0][dfts[0]>0], 8)))
-        #print('Y: Hz-', data[1][0], 'Magnitude:' , np.unique(np.round(dfts[1][dfts[1]>0], 8)))
-        #print('Z: Hz-', data[2][0], 'Magnitude:' , np.unique(np.round(dfts[2][dfts[2]>0], 8)))
+    if zeros and not plotit:
+        print(f'user{user}_{exp}')
+        print(f'X: Freqs - {np.unique(np.round(np.abs(f[np.where(dfts[0])]), 8))}, Magnitude - {np.unique(np.round(dfts[0][dfts[0]>0], 8))}')
+        print(f'Y: Freqs - {np.unique(np.round(np.abs(f[np.where(dfts[1])]), 8))}, Magnitude - {np.unique(np.round(dfts[0][dfts[0]>0], 8))}')
+        print(f'Z: Freqs - {np.unique(np.round(np.abs(f[np.where(dfts[2])]), 8))}, Magnitude - {np.unique(np.round(dfts[0][dfts[0]>0], 8))}')
         print('------------------')
-    """
+    
     return np.unique(np.round(np.abs(f[np.where(dfts[0])]), 8)), np.unique(np.round(np.abs(f[np.where(dfts[1])]), 8)), np.unique(np.round(np.abs(f[np.where(dfts[2])]), 8))
 
 
@@ -237,7 +236,7 @@ def get_frequencies_from_activities(activity_array, percent, window):
     for a in activity_array:
         if len(a)<5:
             for i in range(len(a)):
-                x, y, z = plot_activity_dft(a[i], len(a[i]), 0, 0, '', True, percent, window, False)
+                x, y, z = plot_activity_dft(a[i], len(a[i]), 0, 0, '', False, percent, window, False)
                 for j in x:
                     x_total.append(j)
                 for j in y:
@@ -245,7 +244,7 @@ def get_frequencies_from_activities(activity_array, percent, window):
                 for j in z:
                     z_total.append(j)
         else:
-            x, y, z = plot_activity_dft(a, len(a), 0, 0, '', True, percent, window, False)
+            x, y, z = plot_activity_dft(a, len(a), 0, 0, '', False, percent, window, False)
             for j in x:
                 x_total.append(j)
             for j in y:
@@ -261,7 +260,7 @@ def get_frequencies_from_activities(activity_array, percent, window):
     return Hz_pd
 
 
-def stft(user, janela, percent, flag_max_freq = 3):
+def stft(user, janela, media = 150):
     miniNs = janela
     overlap = miniNs//2
 
@@ -271,17 +270,26 @@ def stft(user, janela, percent, flag_max_freq = 3):
     else:
         f = np.linspace( -fs/2 + fs/2/miniNs, fs/2 - fs/2/miniNs, miniNs)
     
-    freqs = [np.array([])] * flag_max_freq
+    freqs = np.array([])
     window = np.hanning(miniNs)
     times = np.array([])
     cms_max = np.array([])
+    mean_var = np.array([])
     
     N = len(user['Z'])
     
     for i in range(0, N-miniNs + 1, miniNs - overlap):
         Cms = np.array([])
+        
         seccao = signal.detrend(user['Z'][i:i+miniNs])
-        dft = np.abs(fftshift(fft(seccao)))
+        
+        media_movel = get_media_movel(user['Z'], [i,i+miniNs],media)
+        
+        var_in_interval = abs(media_movel[-1] - media_movel[0])
+        
+        mean_var = np.append( mean_var, [var_in_interval])
+        
+        dft = np.abs(fftshift(fft(seccao*window)))           
         
         for j in range(len(dft[f>=0])):
             if f[f>=0][j]==0:
@@ -290,37 +298,84 @@ def stft(user, janela, percent, flag_max_freq = 3):
                 Cms = np.append(Cms, [dft[f>=0][j]*2/miniNs])
 
         cms_max = np.append( cms_max, [max(Cms)])
-        #c_max = max(dft)*(2 if np.any(f[dft==max(dft)]!=0) else 1)/miniNs
-        #print(c_max)
-
-        dft = np.abs(fftshift(fft(seccao*window)))
-        dft[dft<np.max(dft)*percent] = 0
+    
+        dft[np.abs(f)>2.5] = 0
+        dft[dft != max(dft)] = 0
+        max_freq = np.unique( np.round( np.abs(f[ dft==dft.max() ]), 8 ) )
         
-        j = -1
-        while j >= -3 and abs(j)-1 < len(np.unique(np.round(np.abs(f[dft>0]), 8))):
-            freqs[abs(j)-1] = np.append( freqs[abs(j)-1], np.unique(np.round(np.abs(f[dft>0]), 8))[j] )
-            j-=1
-        if j>=-3:
-            while j >= -3:
-                freqs[abs(j)-1] = np.append(freqs[abs(j)-1], [0])
-                j-=1
-        
-        """
-        for j in range(len(np.unique(np.round(np.abs(f[ dft>0 ]), 8)))):
-            if j == flag_max_freq:
-                break
-            if np.unique(np.round(np.abs(f[ dft>0 ]), 8))[j] > 2.5:
-                continue
-            else:
-                freqs[j] = np.append( freqs[j], np.unique(np.round(np.abs(f[ dft>0 ]), 8))[j] )
-        
-
-        max_len = max(map(lambda x: len(x), freqs))
-        for j in range(len(freqs)):
-            while len(freqs[j]) < max_len:
-                freqs[j] = np.append(freqs[j], [-1])
-        """
-
+        freqs = np.append( freqs, [max_freq[0]])
         times = np.append(times, user['Time (min)'][(2*i+miniNs)//2])
 
-    return times, freqs, cms_max
+    return times, freqs, cms_max, mean_var
+
+
+#funcao para predicao da classe
+def get_sample_predict(user, percent, n_interval = []):
+    
+    if n_interval == []:
+        n_interval.append(0)
+        n_interval.append(len(user))
+    N = n_interval[1] - n_interval[0]
+    
+    #----------------#
+    fs = 50
+    if N%2==0:
+        f = np.linspace( -fs/2, fs/2 - fs/2/N, N) 
+    else:
+        f = np.linspace( -fs/2 + fs/2/N, fs/2 - fs/2/N, N)
+    
+    #----------------#
+    window = np.hanning(N)        
+    seccao = detrend_user_walk(user.iloc[n_interval[0]:n_interval[1]])
+    
+    dfts = pd.DataFrame()
+    dfts['X'] = np.abs(fftshift(fft( np.array(seccao['X']) * window)))
+    dfts['Y'] = np.abs(fftshift(fft( np.array(seccao['Y']) * window)))
+    dfts['Z'] = np.abs(fftshift(fft( np.array(seccao['Z']) * window)))
+
+    dfts['X'][(np.abs(f)>=3) ] = 0
+    dfts['Y'][(np.abs(f)>=3) ] = 0
+    dfts['Z'][(np.abs(f)>=3) ] = 0
+    
+    x_max_freq = np.unique( np.round( np.abs(f[ dfts['X']==dfts['X'].max() ]), 8 ) )
+    y_max_freq = np.unique( np.round( np.abs(f[ dfts['Y']==dfts['Y'].max() ]), 8 ) )
+    z_max_freq = np.unique( np.round( np.abs(f[ dfts['Z']==dfts['Z'].max() ]), 8 ) )
+    
+    #----------------#
+    if N < 250:
+        if y_max_freq[0]>=1 or x_max_freq[0] >=1.2:
+            return 3
+        else:
+            return 2
+    
+    if z_max_freq[0] >= 0.6:
+        return 3
+    else:
+        return 1
+
+# funcao para conversao das atividades (recebidas de input) para a classe da atividade
+def convert_to_class( n ):
+    if n[2] < 4:
+        return 3  #Dinâmica
+    elif 3<n[2]<7:
+        return 1 # Estática
+    return 2 #Transição
+
+#obter o valor da média móvel do user no intervalo, utilizando os n_points anteriores
+def get_media_movel(user_Z, interval, n_points):
+    media_movel = []
+    for i in range(interval[0], interval[1]+1):
+        if interval[0] >= n_points:
+            media_movel.append( sum( user_Z[i - j] for j in range(1, n_points + 1) )/n_points )
+        else:
+            media_movel.append(np.mean(user_Z[interval[0]:interval[1]]))
+    return media_movel
+
+
+def get_user(user,exp):
+    u = pd.DataFrame(data = np.loadtxt(f"Datasets/acc_exp0{exp}_user0{user}.txt"), columns = ['X','Y','Z'])
+    fs = 50
+    T = 1/fs
+    u['Time (min)'] = np.arange(0, len(u) * T, T)/60
+    
+    return u
