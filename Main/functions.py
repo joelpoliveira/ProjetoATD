@@ -276,8 +276,7 @@ def get_frequencies_from_activities(activity_array, percent, window):
     
     aux = {'X':x_total, 'Y':y_total, 'Z':z_total}
     Hz_pd = pd.DataFrame.from_dict(aux, orient='index').transpose()
-    Hz_pd = Hz_pd[::][Hz_pd[::]<2.5]
-    Hz_pd = Hz_pd[::][Hz_pd[::]>0]
+    Hz_pd = Hz_pd[::][Hz_pd[::]<=3]
 
     return Hz_pd
 
@@ -401,3 +400,63 @@ def get_user(user,exp):
     u['Time (min)'] = np.arange(0, len(u) * T, T)/60
     
     return u
+
+def get_amps(user_frag_act, N, percent, wind_title):
+    fs = 50
+    if N%2==0:
+        f = np.linspace( -fs/2, fs/2 - fs/N, N) 
+    else:
+        f = np.linspace( -fs/2 + fs/2/N, fs/2 - fs/2/N, N)
+    
+    if wind_title.lower()=='blackman':
+        window = np.blackman(N)
+    elif wind_title.lower()=='hamming':
+        window = np.hamming(N)
+    elif wind_title.lower()=='hann':
+        window = signal.windows.hann(N)
+    else:
+        window = np.ones(f.shape)
+    
+    dfts = pd.DataFrame()
+    dfts['X'] = np.abs( fftshift( fft( user_frag_act['X'] * window ) ) ) 
+    dfts['Y'] = np.abs( fftshift( fft( user_frag_act['Y'] * window ) ) ) 
+    dfts['Z'] = np.abs( fftshift( fft( user_frag_act['Z'] * window ) ) ) 
+    
+    Cms = pd.DataFrame()
+    Cms['X'] = dfts['X'].copy()
+    Cms['Y'] = dfts['Y'].copy()
+    Cms['Z'] = dfts['Z'].copy()
+    
+    Cms['X'][f!=0] *=2/N; Cms['X'][f==0] /= N;
+    Cms['Y'][f!=0] *=2/N; Cms['Y'][f==0] /= N;
+    Cms['Z'][f!=0] *=2/N; Cms['Z'][f==0] /= N;
+    
+    Cms['X'].sort_values();
+    Cms['Y'].sort_values();
+    Cms['Z'].sort_values();
+    
+    return Cms.head(3)
+    
+def get_amplitudes_from_activities(activity_array, percent, window):  
+    x_total = []
+    y_total = []
+    z_total = []
+    aux = {}
+    
+    for a in activity_array:
+        if len(a)<5:
+            for i in range(len(a)):
+                amps = get_amps(a[i], len(a[i]), percent, window)
+                x_total = x_total + amps['X'].to_list()
+                y_total = x_total + amps['Y'].to_list()
+                z_total = x_total + amps['Z'].to_list()
+        else:
+            amps = get_amps(a, len(a), percent, window)
+            x_total = x_total + amps['X'].to_list()
+            y_total = x_total + amps['Y'].to_list()
+            z_total = x_total + amps['Z'].to_list()
+    
+    aux = {'X':x_total, 'Y':y_total, 'Z':z_total}
+    Omg_pd = pd.DataFrame.from_dict(aux, orient='index').transpose()
+
+    return Omg_pd
