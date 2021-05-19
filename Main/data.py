@@ -1,6 +1,6 @@
 import numpy as np
 import pandas as pd
-from functions_tomas import ufrag, detrend_user_walk
+from functions import ufrag, detrend_user_walk
 
 
 user1_1 = pd.DataFrame(data = np.loadtxt("Datasets/acc_exp01_user01.txt"), columns = ['X','Y','Z'])
@@ -723,7 +723,7 @@ sit_stand_user.append(sit_stand_user4_1_detrended)
 sit_stand_user.append(sit_stand_user4_2_detrended)
 
 
-#------Stand to lie------#
+#------All Stand to lie into Array------#
 stand_lie_user = []
 stand_lie_user.append(stand_lie_user1_1_detrended)
 stand_lie_user.append(stand_lie_user1_2_detrended)
@@ -734,7 +734,7 @@ stand_lie_user.append(stand_lie_user3_2_detrended)
 stand_lie_user.append(stand_lie_user4_1_detrended)
 stand_lie_user.append(stand_lie_user4_2_detrended)
 
-#------Lie to stand------#
+#------All Lie to stand into Array------#
 lie_sit_user = []
 lie_sit_user.append(lie_sit_user1_1_detrended)
 lie_sit_user.append(lie_sit_user1_2_detrended)
@@ -745,7 +745,7 @@ lie_sit_user.append(lie_sit_user3_2_detrended)
 lie_sit_user.append(lie_sit_user4_1_detrended)
 lie_sit_user.append(lie_sit_user4_2_detrended)
 
-#------Sit to lie------#
+#------All Sit to lie into Array------#
 sit_lie_user = []
 sit_lie_user.append(sit_lie_user1_1_detrended)
 sit_lie_user.append(sit_lie_user1_2_detrended)
@@ -756,7 +756,7 @@ sit_lie_user.append(sit_lie_user3_2_detrended)
 sit_lie_user.append(sit_lie_user4_1_detrended)
 sit_lie_user.append(sit_lie_user4_2_detrended)
 
-#------Lie to Stand------#
+#------All Lie to Stand into Array------#
 lie_stand_user = []
 lie_stand_user.append(lie_stand_user1_1_detrended)
 lie_stand_user.append(lie_stand_user1_2_detrended)

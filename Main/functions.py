@@ -11,9 +11,34 @@ import seaborn as sns
 
 
 def plot_with_labels(upxvalues, downxvalues, up, down, user, index):
+    
+    '''
+    Plots the X, Y, Z axis from the accelerometer
+            Parameters:
+                    upxvalues (list): ordenadas para impressão de up (labels a colocar em cima)
+                    downxvalues (list): ordenadas para impressão de down (labels a colocar em baixo)
+                    up (list): lista com as labels das atividades
+                    down (list): list com as labels das atividades
+                    user (pandas.dataFrame): dataFrame com os dados do user a imprimir.
+                    index (int): numero da experiência, de modo a imprimir o Numero do Sujeito, bem como da sua experiência
+    '''
+    int_to_label = {1: "W",       
+                    2: "W_U",  
+                    3: "W_D",
+                    4: "SIT",           
+                    5: "STAND",         
+                    6: "LAY",           
+                    7: "STAND_TO_SIT",     
+                    8: "SIT_TO_STAND",      
+                    9: "SIT_TO_LIE",       
+                    10: "LIE_TO_SIT",        
+                    11: "STAND_TO_LIE",     
+                    12: "LIE_TO_STAND",  
+    }
+    
     figure, subplots = plt.subplots(nrows=3, ncols=1, figsize=(20,8))
     figure.suptitle(f"Valores Obtidos Pelo Acelerómetro na Experiência {index%2+1} do Sujeito {index//2+1}", fontsize = 'xx-large')
-    
+
     #X
     subplots[0].plot( user['Time (min)'], user['X'], lw = 0.3)
     subplots[0].set_xlabel("Time (min)")
@@ -31,22 +56,19 @@ def plot_with_labels(upxvalues, downxvalues, up, down, user, index):
     subplots[2].set_xlabel("Time (min)")
     subplots[2].set_ylabel("ACC_Z")
     subplots[2].set_xlim(0, max(user['Time (min)']))
-    
-    xmin,xmax = subplots[0].get_xlim()
-    
+        
     for i in range(len(upxvalues)):
         yv = 0.95 if i % 2 == 0 else 0.90
-        frase = up[i]
-        xv = upxvalues[i]/xmax
+        frase = int_to_label[up[i]]
+        xv = upxvalues[i]/len(user)
         
         subplots[0].annotate(xycoords = 'axes fraction', text = frase, xy = (xv,yv), textcoords = subplots[0].transAxes, xytext = (xv,yv), fontweight='bold')
         subplots[1].annotate(xycoords = 'axes fraction', text = frase, xy = (xv,yv), textcoords = subplots[1].transAxes, xytext = (xv,yv), fontweight='bold')
-        subplots[2].annotate(xycoords = 'axes fraction', text = frase, xy = (xv,yv), textcoords = subplots[2].transAxes, xytext = (xv,yv), fontweight='bold')
-        
+        subplots[2].annotate(xycoords = 'axes fraction', text = frase, xy = (xv,yv), textcoords = subplots[2].transAxes, xytext = (xv,yv), fontweight='bold')        
     yv = 0.01 
     for i in range(len(downxvalues)):
-        frase = down[i]
-        xv = downxvalues[i]/xmax
+        frase = int_to_label[down[i]]
+        xv = downxvalues[i]/len(user)
         
         subplots[0].annotate(xycoords = 'axes fraction', text = frase, xy = (xv,yv), textcoords = subplots[0].transAxes, xytext = (xv,yv), fontweight='bold')
         subplots[1].annotate(xycoords = 'axes fraction', text = frase, xy = (xv,yv), textcoords = subplots[1].transAxes, xytext = (xv,yv), fontweight='bold')
@@ -366,7 +388,7 @@ def get_media_movel(user_Z, interval, n_points):
     media_movel = []
     for i in range(interval[0], interval[1]+1):
         if interval[0] >= n_points:
-            media_movel.append( sum( user_Z[i - j] for j in range(1, n_points + 1) )/n_points )
+            media_movel.append( (user_Z[i-n_points:i]/n_points).sum() )
         else:
             media_movel.append(np.mean(user_Z[interval[0]:interval[1]]))
     return media_movel
