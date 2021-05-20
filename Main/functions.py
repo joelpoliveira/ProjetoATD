@@ -276,7 +276,8 @@ def get_frequencies_from_activities(activity_array, percent, window, down = 0, u
     
     aux = {'X':x_total, 'Y':y_total, 'Z':z_total}
     Hz_pd = pd.DataFrame.from_dict(aux, orient='index').transpose()
-    Hz_pd = Hz_pd[::][ (Hz_pd[::]>= down) && (Hz_pd[::]<= up) ]
+    Hz_pd = Hz_pd[Hz_pd[::]!= 0]
+    Hz_pd = Hz_pd[::][ (Hz_pd[::]>= down) & (Hz_pd[::]<= up) ]
 
     return Hz_pd
 
@@ -374,6 +375,7 @@ def get_sample_predict(user, percent, n_interval = [], freqs_interval = None, am
     else:
         return 1
 
+
 # funcao para conversao das atividades (recebidas de input) para a classe da atividade
 def convert_to_class( n ):
     if n[2] < 4:
@@ -381,6 +383,7 @@ def convert_to_class( n ):
     elif 3<n[2]<7:
         return 1 # Estática
     return 2 #Transição
+
 
 #obter o valor da média móvel do user no intervalo, utilizando os n_points anteriores
 def get_media_movel(user_Z, interval, n_points):
