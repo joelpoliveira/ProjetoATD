@@ -2,7 +2,6 @@ import numpy as np
 from sympy import *
 import matplotlib.pyplot as plt
 import pandas as pd
-import math
 from scipy import signal
 import scipy as sy
 from numpy.fft import fft, fftshift
@@ -11,7 +10,6 @@ import seaborn as sns
 
 
 def plot_with_labels(upxvalues, downxvalues, up, down, user, index):
-    
     '''
     Plots the X, Y, Z axis from the accelerometer
             Parameters:
