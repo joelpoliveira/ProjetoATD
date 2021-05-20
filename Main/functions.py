@@ -249,7 +249,7 @@ def plot_activity_dft(user_frag_act, N, user, exp, title, zeros, percent, wind_t
     return np.unique(np.round(np.abs(f[np.where(dfts[0])]), 8)), np.unique(np.round(np.abs(f[np.where(dfts[1])]), 8)), np.unique(np.round(np.abs(f[np.where(dfts[2])]), 8))
 
 
-def get_frequencies_from_activities(activity_array, percent, window):
+def get_frequencies_from_activities(activity_array, percent, window, down = 0, up = 3):
     x_total = []
     y_total = []
     z_total = []
@@ -276,7 +276,7 @@ def get_frequencies_from_activities(activity_array, percent, window):
     
     aux = {'X':x_total, 'Y':y_total, 'Z':z_total}
     Hz_pd = pd.DataFrame.from_dict(aux, orient='index').transpose()
-    Hz_pd = Hz_pd[::][Hz_pd[::]<=3]
+    Hz_pd = Hz_pd[::][ (Hz_pd[::]>= down) && (Hz_pd[::]<= up) ]
 
     return Hz_pd
 
@@ -331,7 +331,7 @@ def stft(user, janela, media = 150):
 
 
 #funcao para predicao da classe
-def get_sample_predict(user, percent, n_interval = []):
+def get_sample_predict(user, percent, n_interval = [], freqs_interval = None, amps_interval = None):
     
     if n_interval == []:
         n_interval.append(0)
@@ -404,10 +404,14 @@ def get_user(user,exp):
 def get_amps(user_frag_act, N, percent, wind_title):
     fs = 50
     if N%2==0:
-        f = np.linspace( -fs/2, fs/2 - fs/N, N) 
+        #f = np.linspace(-fs/2,fs/2-fs/N,N)
+        #f = -fs/2:fs/N:fs/2-fs/N;
+        f = np.round(np.arange(-fs/2, fs/2, fs/N), 6)
     else:
-        f = np.linspace( -fs/2 + fs/2/N, fs/2 - fs/2/N, N)
-    
+        #f = np.linspace(-fs/2+fs/N/2,fs/2-fs/N/2,N)
+        #f = -fs/2+fs/(2*N):fs/N:fs/2-fs/(2*N);
+        f = np.round(np.arange(-fs/2 + fs/2/N, fs/2, fs/N), 6)
+        
     if wind_title.lower()=='blackman':
         window = np.blackman(N)
     elif wind_title.lower()=='hamming':
@@ -422,20 +426,27 @@ def get_amps(user_frag_act, N, percent, wind_title):
     dfts['Y'] = np.abs( fftshift( fft( user_frag_act['Y'] * window ) ) ) 
     dfts['Z'] = np.abs( fftshift( fft( user_frag_act['Z'] * window ) ) ) 
     
+    index = np.where(f==0)[0][0]
+    
     Cms = pd.DataFrame()
-    Cms['X'] = dfts['X'].copy()
-    Cms['Y'] = dfts['Y'].copy()
-    Cms['Z'] = dfts['Z'].copy()
+    Cms['X'] = dfts['X'].loc[index:].reset_index()['X'].copy()
+    Cms['Y'] = dfts['Y'].loc[index:].reset_index()['Y'].copy()
+    Cms['Z'] = dfts['Z'].loc[index:].reset_index()['Z'].copy()
+      
+    Cms['X'].loc[0] *=2/N; 
+    Cms['X'].loc[1:] /= N;    
     
-    Cms['X'][f!=0] *=2/N; Cms['X'][f==0] /= N;
-    Cms['Y'][f!=0] *=2/N; Cms['Y'][f==0] /= N;
-    Cms['Z'][f!=0] *=2/N; Cms['Z'][f==0] /= N;
+    Cms['Y'].loc[0] *=2/N; 
+    Cms['Y'].loc[1:] /= N;
     
-    Cms['X'].sort_values();
-    Cms['Y'].sort_values();
-    Cms['Z'].sort_values();
+    Cms['Z'].loc[0] *=2/N; 
+    Cms['Z'].loc[1:] /= N;
     
-    return Cms.head(3)
+    Cms['X'] = Cms['X'].sort_values(ascending = False);
+    Cms['Y'] = Cms['Y'].sort_values(ascending = False);
+    Cms['Z'] = Cms['Z'].sort_values(ascending = False);
+    
+    return Cms.head(1)
     
 def get_amplitudes_from_activities(activity_array, percent, window):  
     x_total = []
